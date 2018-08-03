@@ -7,6 +7,8 @@ import (
 	"github.com/katzien/go-structure-examples/domain-driven/beers"
 )
 
+/// TODO - move endpoints to the server main package?
+
 // MakeAddBeerEndpoint creates a handler for POST /beers requests
 func MakeAddBeerEndpoint(s Service) func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
