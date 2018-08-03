@@ -1,40 +1,56 @@
 package main
 
-//func TestGetBeers(t *testing.T) {
-//
-//	var cellarFromRequest []Beer
-//	var cellarFromStorage = db.FindBeers()
-//
-//	w := httptest.NewRecorder()
-//	r, _ := http.NewRequest("GET", "/beers", nil)
-//
-//	router.ServeHTTP(w, r)
-//
-//	json.Unmarshal(w.Body.Bytes(), &cellarFromRequest)
-//
-//	if w.Code != http.StatusOK {
-//		t.Errorf("Expected route GET /beers to be valid.")
-//		t.FailNow()
-//	}
-//
-//	if len(cellarFromRequest) != len(cellarFromStorage) {
-//		t.Error("Expected number of beers from request to be the same as beers in the storage")
-//		t.FailNow()
-//	}
-//
-//	var mapCellar = make(map[Beer]int, len(cellarFromStorage))
-//	for _, beer := range cellarFromStorage {
-//		mapCellar[beer] = 1
-//	}
-//
-//	for _, beerResp := range cellarFromRequest {
-//		if _, ok := mapCellar[beerResp]; !ok {
-//			t.Errorf("Expected all results to match existing records")
-//			t.FailNow()
-//			break
-//		}
-//	}
-//}
+import (
+	"testing"
+	"net/http/httptest"
+	"net/http"
+	"encoding/json"
+)
+
+// TestGetBeers calls the GET /beers endpoint and compares the result returned with what's in the storage.
+// It's very awkward as it relies on the sample data being created.
+func TestGetBeers(t *testing.T) {
+	var cellarFromRequest []Beer
+	var cellarFromStorage []Beer
+	var err error
+
+	cellarFromStorage, err = db.FindBeers()
+	if err != nil {
+		t.Errorf("unexpected error while fetching beers from storage: %s", err.Error())
+		t.FailNow()
+	}
+
+	w := httptest.NewRecorder()
+	r, _ := http.NewRequest("GET", "/beers", nil)
+
+	router.ServeHTTP(w, r)
+
+	json.Unmarshal(w.Body.Bytes(), &cellarFromRequest)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected route GET /beers to be valid")
+		t.FailNow()
+	}
+
+	if len(cellarFromRequest) != len(cellarFromStorage) {
+		t.Error("expected number of beers from request to be the same as beers in the storage")
+		t.FailNow()
+	}
+
+	var mapCellar = make(map[int]int, len(cellarFromStorage))
+	for _, beer := range cellarFromStorage {
+		mapCellar[beer.ID] = 1
+	}
+
+	for _, beerResp := range cellarFromRequest {
+		if _, ok := mapCellar[beerResp.ID]; !ok {
+			t.Errorf("expected all results to match existing records")
+			t.FailNow()
+			break
+		}
+	}
+}
+
 //
 //func TestGetBeer(t *testing.T) {
 //	cellar := db.FindBeers()

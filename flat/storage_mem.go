@@ -51,14 +51,18 @@ func (s *StorageMemory) SaveReview(reviews ...Review) error {
 func (s *StorageMemory) FindBeer(criteria Beer) ([]Beer, error) {
 	var beers []Beer
 
-	for _, b := range s.cellar {
+	if criteria.ID != 0 {
+		for _, b := range s.cellar {
 
-		if b.ID == criteria.ID {
-			beers = append(beers, b)
+			if b.ID == criteria.ID {
+				beers = append(beers, b)
+			}
 		}
+
+		return beers, nil
 	}
 
-	return beers, nil
+	return beers, fmt.Errorf("no beer ID specified")
 }
 
 // FindReview finds all reviews for a given criteria.
@@ -66,13 +70,17 @@ func (s *StorageMemory) FindBeer(criteria Beer) ([]Beer, error) {
 func (s *StorageMemory) FindReview(criteria Review) ([]Review, error) {
 	var matches []Review
 
-	for _ ,r := range s.reviews {
-		if r.BeerID == criteria.BeerID {
-			matches = append(matches, r)
+	if criteria.BeerID != 0 {
+		for _, r := range s.reviews {
+			if r.BeerID == criteria.BeerID {
+				matches = append(matches, r)
+			}
 		}
+
+		return matches, nil
 	}
 
-	return matches, nil
+	return matches, fmt.Errorf("no beer ID specified")
 }
 
 // FindBeers return all beers

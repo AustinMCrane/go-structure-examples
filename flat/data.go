@@ -1,5 +1,10 @@
 package main
 
+import (
+	"os"
+	"io"
+)
+
 // PopulateBeers populates the Cellar variable with Beers
 func PopulateBeers() {
 	defaultBeers := []Beer{
@@ -95,7 +100,9 @@ func PopulateBeers() {
 	}
 
 	if err := db.SaveBeer(defaultBeers...); err != nil {
-		panic(err.Error())
+		if err.Error() != "beer already exists" {
+			panic(err.Error())
+		}
 	}
 }
 
@@ -110,7 +117,17 @@ func PopulateReviews() {
 		{BeerID: 2, FirstName: "Rachel", LastName: "Green", Score: 5, Text: "So yummy, just like my beef and custard trifle."},
 	}
 
-	if err := db.SaveReview(defaultReviews...); err != nil {
+	f, err := os.Open(JSONDataLocation + CollectionReview)
+	if err != nil {
 		panic(err.Error())
+	}
+	defer f.Close()
+
+	_, err = f.Readdirnames(1)
+	if err == io.EOF {
+		// populate the data if the data/reviews dir is empty
+		if err := db.SaveReview(defaultReviews...); err != nil {
+			panic(err.Error())
+		}
 	}
 }

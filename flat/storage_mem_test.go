@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TestSaveBeer(t *testing.T) {
+func TestSaveBeerInMemoryStorage(t *testing.T) {
 	storage := new(StorageMemory)
 	sampleBeer := Beer{
 		Name:    "Pliny the Elder",
@@ -33,7 +33,7 @@ func TestSaveBeer(t *testing.T) {
 	assert.True(t, sampleBeer.Created.Before(time.Now()))
 }
 
-func TestSaveBeerReturnsErrorIfBeerAlreadyExists(t *testing.T) {
+func TestSaveBeerReturnsErrorIfBeerAlreadyExistsInMemoryStorage(t *testing.T) {
 	storage := new(StorageMemory)
 	sampleBeer := Beer{
 		Name:    "Pliny the Elder",
@@ -56,7 +56,7 @@ func TestSaveBeerReturnsErrorIfBeerAlreadyExists(t *testing.T) {
 	assert.Equal(t, "beer already exists", errDupe.Error())
 }
 
-func TestSaveMultipleBeers(t *testing.T) {
+func TestSaveMultipleBeersInMemoryStorage(t *testing.T) {
 	storage := new(StorageMemory)
 
 	sampleBeer1 := Beer{
@@ -84,7 +84,7 @@ func TestSaveMultipleBeers(t *testing.T) {
 	assert.Equal(t, 2, len(storage.cellar))
 }
 
-func TestSaveReview(t *testing.T) {
+func TestSaveReviewInMemoryStorage(t *testing.T) {
 	storage := new(StorageMemory)
 
 	sampleBeer := Beer{
@@ -122,4 +122,113 @@ func TestSaveReview(t *testing.T) {
 	assert.Equal(t, sampleReview.Text, review.Text)
 	assert.NotNil(t, sampleReview.Created)
 	assert.True(t, sampleReview.Created.Before(time.Now()))
+}
+
+func TestFindBeersReturnsExpectedResultInMemoryStorage(t *testing.T) {
+	storage := new(StorageMemory)
+
+	sampleBeer1 := Beer{
+		ID:   1,
+		Name: "Pliny the Elder",
+	}
+
+	sampleBeer2 := Beer{
+		ID:   2,
+		Name: "Bath Ale",
+	}
+
+	storage.cellar = append(storage.cellar, sampleBeer1)
+	storage.cellar = append(storage.cellar, sampleBeer2)
+
+	result, err := storage.FindBeers()
+
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(result))
+	assert.Contains(t, result, sampleBeer1)
+	assert.Contains(t, result, sampleBeer2)
+}
+
+func TestFindBeersReturnsEmptyResultIfNoBeersFoundInMemoryStorage(t *testing.T) {
+	storage := new(StorageMemory)
+
+	result, err := storage.FindBeers()
+
+	assert.Nil(t, err)
+	assert.Equal(t, 0, len(result))
+}
+
+func TestFindBeerReturnsExpectedResultInMemoryStorage(t *testing.T) {
+	storage := new(StorageMemory)
+
+	sampleBeer := Beer{
+		ID:   1,
+		Name: "Pliny the Elder",
+	}
+
+	storage.cellar = append(storage.cellar, sampleBeer)
+
+	result, err := storage.FindBeer(Beer{ID: 1})
+
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(result))
+	assert.Equal(t, sampleBeer.ID, result[0].ID)
+	assert.Equal(t, sampleBeer.Name, result[0].Name)
+}
+
+func TestFindBeerReturnsEmptyResultIfNoMatchingBeersFoundInMemoryStorage(t *testing.T) {
+	storage := new(StorageMemory)
+
+	result, err := storage.FindBeer(Beer{ID: 1})
+
+	assert.Nil(t, err)
+	assert.Equal(t, 0, len(result))
+}
+
+func TestFindBeerReturnsErrorIfNoBeerIDGivenInMemoryStorage(t *testing.T) {
+	storage := new(StorageMemory)
+
+	_, err := storage.FindBeer(Beer{})
+
+	assert.NotNil(t, err)
+	assert.Equal(t, "no beer ID specified", err.Error())
+}
+
+func TestFindReviewReturnsExpectedResultInMemoryStorage(t *testing.T) {
+	storage := new(StorageMemory)
+
+	sampleReview := Review{
+		BeerID: 2,
+		FirstName: "John",
+		LastName:  "Doe",
+		Score: 3,
+	}
+
+	storage.reviews = append(storage.reviews, sampleReview)
+
+	result, err := storage.FindReview(Review{BeerID: 2})
+
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(result))
+	assert.Equal(t, sampleReview.BeerID, result[0].BeerID)
+	assert.Equal(t, sampleReview.FirstName, result[0].FirstName)
+	assert.Equal(t, sampleReview.LastName, result[0].LastName)
+	assert.Equal(t, sampleReview.Score, result[0].Score)
+}
+
+func TestFindReviewReturnsEmptyResultIfNoMatchingReviewsFoundInMemoryStorage(t *testing.T) {
+	storage := new(StorageMemory)
+
+	result, err := storage.FindReview(Review{BeerID: 1})
+
+	assert.Nil(t, err)
+	assert.Equal(t, 0, len(result))
+}
+
+func TestFindReviewReturnsErrorIfNoBeerIDGivenInMemoryStorage(t *testing.T) {
+	storage := new(StorageMemory)
+
+	_, err := storage.FindReview(Review{})
+
+	assert.NotNil(t, err)
+	assert.Equal(t, "no beer ID specified", err.Error())
 }
